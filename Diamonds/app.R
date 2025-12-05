@@ -42,7 +42,7 @@ ui <- fluidPage(
       
     
     mainPanel(
-      plotOutput(outputId = "diamondPlot"),
+      plotlyOutput(outputId = "diamondPlot"),
       DTOutput(outputId = "table")
     )
     )
@@ -61,8 +61,9 @@ server <- function(input, output) {
           color= if (input$pink_bouton == "Oui") "pink" else "black") +
         theme_minimal() +
         labs(
-          title = paste("prix:", input$prix, "& color:", input$color_input)
+          title = paste("prix:", input$prix_input, "& color:", input$color_input)
         )
+    
     rv$table<-diamonds|>
       filter(price <= input$prix_input & color == input$color_input)|>
         select(carat, cut, clarity, depth, table, price)
@@ -73,7 +74,7 @@ server <- function(input, output) {
     )
     })
     
-  output$diamondPlot <- renderPlot({
+  output$diamondPlot <- renderPlotly({
     rv$graphe})
  
   output$table<-renderDT({
