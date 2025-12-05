@@ -66,6 +66,11 @@ server <- function(input, output) {
     rv$table<-diamonds|>
       filter(price <= input$prix_input & color == input$color_input)|>
         select(carat, cut, clarity, depth, table, price)
+    
+    showNotification(
+      paste("prix:", input$prix, "& color:", input$color_input),
+      type = "message"
+    )
     })
     
   output$diamondPlot <- renderPlot({
@@ -75,9 +80,7 @@ server <- function(input, output) {
    rv$table
   })
   
-  showNotification(
-    type
-  )
+ 
   
 }
 
