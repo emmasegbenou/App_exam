@@ -13,8 +13,8 @@ ui <- fluidPage(
   ),
 
     # titre de l'application
-    titlePanel("Diamonds App"),
-    h2("Exploration des diamants"),
+  titlePanel("Diamonds App"),
+  h2("Exploration des diamants"),
 
   sidebarLayout(
     sidebarPanel(
@@ -37,37 +37,48 @@ ui <- fluidPage(
       
       actionButton(
         inputId = "go",
-        label = "Visualiser le graph"
+        label = "Visualiser le graph")
       ),
       
-    ),
     
     mainPanel(
       plotOutput(outputId = "diamondPlot"),
       DTOutput(outputId = "table")
-    ),
-),
-)
+    )
+    )
+  )
+  
+
+  
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   rv<-reactiveValues()
-  observeEvent(input$go{
-    rv$graphe<-output$diamondPlot <- renderPlot({
-      diamonds|> 
+  observeEvent(input$go,{
+    rv$graphe<-diamonds|> 
         filter(price <= input$prix_input & color == input$color_input) |>
         ggplot(aes(x = carat, y=price))+
-        geom_point() +
+        geom_point(
+          color= if (input$pink_bouton == "Oui") "pink" else "black") +
         theme_minimal() +
         labs(
           title = paste("prix:", input$prix, "& color:", input$color_input)
         )
+    rv$table<-diamonds|>
+      filter(price <= input$prix_input & color == input$color_input)|>
+        select(carat, cut, clarity, depth, table, price)
     })
+    
+  output$diamondPlot <- renderPlot({
+    rv$graphe})
+ 
+  output$table<-renderDT({
+   rv$table
   })
   
-  output$table<-renderDT({
-    diamonds|> 
-      filter(price > input$prix_input & color==input$color_input)
-  })
+  showNotification(
+    type
+  )
+  
 }
 
 # Run the application 
