@@ -3,7 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(DT)
 library(bslib)
-
+library(plotly)
 thematic::thematic_shiny(font = "auto")
 
 ui <- fluidPage(
@@ -18,84 +18,55 @@ ui <- fluidPage(
 
   sidebarLayout(
     sidebarPanel(
-      actionButton(inputId = "boutton",
-                   label = "bouton"),
-      actionButton(inputId = "boutton2",
-                   label = "Notifications"),
       
-      sliderInput(inputId = "Prix",
-                  label = "Prix maximun",
-                  min = 300,
-                  max = 20,000,
-                  value = 5,000),
+      radioButtons(
+        inputId = "pink_bouton",
+        label = "Colorier les points en rose ?",
+        choices = c("Oui", "Non")
+      ),
       
       selectInput(inputId = "color_input",
                   label = "Choisir une couleur à filtrer",
                   choices = c("D","E","F","G","H","I","J")),
-      radioButtons(inputId = "",
-                   label = "",
-                   choices = "",
-                   selected = NULL,
-                   inline = FALSE,
-                   width = NULL,
-                   choiceNames = NULL,
-                   choiceValues = NULL
       
+      sliderInput(inputId = "prix_input",
+                  label = "Prix maximun",
+                  min = 300,
+                  max = 20000,
+                  value = 5000),
+      
+      actionButton(
+        inputId = "go",
+        label = "Visualiser le graph"
       ),
+      
     ),
     
     mainPanel(
-      textOutput(outputId = "textstarwars"),
-      plotOutput(outputId = "StarWarsPlot"),
-      DTOutput(outputId = "tblo")
-      
-    )
-  )
+      plotOutput(outputId = "diamondPlot"),
+      DTOutput(outputId = "table")
+    ),
+),
 )
-
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
-  rv<-reactiveValues(df=NULL)
-  
-  observeEvent(input$boutton, {
-    rv$df<-starwars |> 
-      filter(height > input$taille & gender == input$gender_input)
-    
-    rv$plot<-rv$df  |>
-      ggplot(aes(x = height)) +
-      geom_histogram(
-        binwidth = 10, 
-        fill = "darkgray", 
-        color = "white"
-      )+
-      labs(
-        title = paste ("Gender choice:",input$gender_input)
-      )
-    message("vous avez cliqué sur le bouton")
-    
+  rv<-reactiveValues()
+  observeEvent(input$go{
+    rv$graphe<-output$diamondPlot <- renderPlot({
+      diamonds|> 
+        filter(price <= input$prix_input & color == input$color_input) |>
+        ggplot(aes(x = carat, y=price))+
+        geom_point() +
+        theme_minimal() +
+        labs(
+          title = paste("prix:", input$prix, "& color:", input$color_input)
+        )
+    })
   })
   
-  observeEvent(input$boutton2, {
-    showNotification(
-      "La valeur du slider a changé !",
-      type = "error"
-    )
-    
-  })
-  
-  output$StarWarsPlot <- renderPlot({
-    rv$plot
-    
-  })
-  output$textstarwars<- renderText({
-    rv$df |>
-      nrow()
-    
-    paste("Nb ligne:",nombre_ligne)
-  })
-  output$tblo<-renderDT({
-    rv$df
+  output$table<-renderDT({
+    diamonds|> 
+      filter(price > input$prix_input & color==input$color_input)
   })
 }
 
